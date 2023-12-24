@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halcyon</title>
+
+    <script>
+        // This will probably be a loaded JSON later
+        let gameState = {
+            gold: 0,
+            playerCharacters: [
+                {
+                    name: "Laperax"
+                }
+            ]
+        }
+        function addGold(amount) {
+            gameState.gold += amount;
+            document.getElementById("goldCount").textContent = gameState.gold;
+        }
+        
+    </script>
+</head>
+<body>
+    <button onclick="addGold(1)">1 Gold</button>
+    <div>Total Gold: <span id="goldCount">0</span></div>
+</body>
+</html>
