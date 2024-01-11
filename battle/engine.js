@@ -2,25 +2,41 @@ import * as actions from './actions.js';
 
 // TEST DATA
 class Entity {
-    // ? Destructure entity_data directly into class properties?
-    constructor(entity_data) {
-        this.data = entity_data;
+    constructor({ name, hp, action, power, speed, cooldown, armor }) {
+        // Assign properties from JSON to this object
+        Object.assign(this, { name, hp, action, power, speed, cooldown, armor })
         this.alive = true;
+        this.starting_cooldown = this.cooldown
+    }
+
+    execute_action(gamestate) {
+        actions[this.action](gamestate, this.power); // will probably want to bring this into the class as its own method
+        this.cooldown = this.starting_cooldown;
+    }
+
+    calculate_damage(damage, dmg_type = "normal") {
+        switch (dmg_type) {
+            case "normal":
+                return (damage - this.armor);
+        }
     }
 
     /*
-    Entity loses HP. This is strictly for HP loss. Modifications to damage type should be done in the Action.
+    Entity loses HP. This is strictly for HP loss. Modifications to damage type should be done in calculate_damage()
     */
     take_damage(damage) {
-        this.data.hp -= damage;
+        this.hp -= damage;
+        if (this.hp <= 0) {
+            this.alive = false;
+        }
     }
 }
 let player_characters = [
     new Entity({
-        "name": "Laperax",
+        "name": "Fighter",
+        "power": 5,
         "hp": 100,
         "action": "attack",
-        "power": 5,
         "speed": 50,
         "cooldown": 100,
         "armor": 1
@@ -62,11 +78,13 @@ class Battle {
     }
 
     random_enemy() {
-        return this.enemies[Math.floor(Math.random() * this.enemies.length)];
+        let alive_enemies = this.enemies.filter((enemy) => enemy.alive);
+        return alive_enemies[Math.floor(Math.random() * alive_enemies.length)];
     }
 
     random_player() {
-        return this.player_characters[Math.floor(Math.random() * this.player_characters.length)];
+        let alive_player_characters = this.player_characters.filter((character) => character.alive);
+        return alive_player_characters[Math.floor(Math.random() * alive_player_characters.length)];
     }
 }
 
@@ -83,17 +101,22 @@ Speed 100 means cast every tick (0.25 seconds), 50 means every other tick (0.5 s
 */
 function game_loop(gamestate) {
     for (const entity of gamestate.turn_queue) {
-        entity.data.cooldown -= entity.data.speed;
-        // if cooldown over, use action then reset cooldown
-        if (entity.data.cooldown <= 0) {
-            console.log(`${entity.data.name} is using ${entity.data.action}!`)
-            actions[entity.data.action](gamestate, entity.data.power); // will probably want to bring this into the class as its own method
-            entity.data.cooldown = 100;
+        if (entity.alive) {
+            entity.cooldown -= entity.speed;
+            // if cooldown over, use action
+            if (entity.cooldown <= 0) {
+                console.log(`${entity.name} is using ${entity.action}!`)
+                entity.execute_action(gamestate)
+            }
         }
+        else {
+            console.log(`${entity.name} is dead.`)
+        }
+
     }
 }
 
-const tick = setInterval(() => game_loop(battle), 500);
+setInterval(() => game_loop(battle), 500);
 // End Game Loop
 
 /*
