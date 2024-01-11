@@ -100,6 +100,18 @@ When Cooldown is <= 0, use Action
 Speed 100 means cast every tick (0.25 seconds), 50 means every other tick (0.5 seconds), etc.
 */
 function game_loop(gamestate) {
+    // check if battle is over
+    let alivePlayers = gamestate.player_characters.filter(player => player.alive);
+    let aliveEnemies = gamestate.enemies.filter(enemy => enemy.alive);
+    if (alivePlayers.length <= 0) {
+        battle_log("<h1>ENEMIES WIN</h1>")
+        clearInterval(tick)
+    }
+    else if (aliveEnemies.length <= 0) {
+        battle_log("<h1>PLAYERS WIN</h1>")
+        clearInterval(tick)
+    }
+
     for (const entity of gamestate.turn_queue) {
         if (entity.alive) {
             entity.cooldown -= entity.speed;
@@ -116,7 +128,7 @@ function game_loop(gamestate) {
     }
 }
 
-setInterval(() => game_loop(battle), 500);
+const tick = setInterval(() => game_loop(battle), 500);
 // End Game Loop
 
 /*
